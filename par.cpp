@@ -4,27 +4,31 @@
 #include <vector>
 #include <iostream>
 #include <climits>
+#include <chrono>
 #include <omp.h>
+#include "bigBoy.cpp"
 
 #define INF 99999
 #define MAX_WEIGHT 20
 
-std::vector<std::vector<int> > graph;
+std::vector<std::vector<int>> graph;
 
-void FloydWarshall() {
-    std::vector<std::vector<int> > dist(graph);
-
-    for(unsigned int i = 0; i < dist.size(); i++){
-        for(unsigned int j = 0; j < dist.size(); j++){
-            for(unsigned int k = 0; k < dist.size(); k++){
-                if(dist[i][k] + dist[k][j] < dist[i][j]) {
-                    dist[i][j] = dist[i][k] + dist[k][j];
+void FloydWarshall(std::vector<std::vector<int>> * dist) {
+    int size = graph.size();
+    #pragma omp parallel for collapse(3)
+    for(unsigned int i = 0; i < size; i++){
+        for(unsigned int j = 0; j < size; j++){
+            for(unsigned int k = 0; k < size; k++){
+                if(graph[i][k] + graph[k][j] < graph[i][j]) {
+                    (*dist)[i][j] = graph[i][k] + graph[k][j];
                 }
             }
         }
     }
+}
 
-    for(std::vector<std::vector<int> >::const_iterator it = dist.begin();
+void PrintGraph(std::vector<std::vector<int>> dist) {
+    for(std::vector<std::vector<int>>::const_iterator it = dist.begin();
             it != dist.end(); ++it) {
         for(std::vector<int>::const_iterator point = it->begin();
                 point != it->end(); ++point) {
@@ -38,13 +42,10 @@ void FloydWarshall() {
     }
 }
 
-void gen_adj_matrix(int size, int connectivity) {
-    std::cout << "Generating..." << std::endl;
+void GenAdjMatrix(int size, int connectivity) {
     int i;
     int j;
 
-    // generate random size x size adjacency matrix of requested connectivity
-    // uses "infinity" to indicate non-adjacent nodes   
     srand((unsigned) time(0));
     for(i = 0; i < size; i++) {
         graph.push_back(std::vector<int>());
@@ -56,18 +57,29 @@ void gen_adj_matrix(int size, int connectivity) {
             }
         }
     }
-    std::cout << "Done!" << std::endl;
 }
 
 int main(void) {
-    //std::vector<std::vector<int> > graph(gen_adj_matrix(20, 10));
-    //std::vector<std::vector<int> > graph {
-    //        {0,         5,          INF,    10},
-    //        {INF,   0,          3,          INF},
-    //        {INF,   INF,    0,          1},
-    //        {INF,   INF,    INF,    0}
-    //};
+    std::vector<std::vector<int> > local {
+        {0,     5,      INF,    10}, 
+        {INF,   0,      3,      INF},
+        {INF,   INF,    0,      1},
+        {INF,   INF,    INF,    0} 
+    };
+    graph = big_boy;
+    //GenAdjMatrix(500, 100);
+    //std::vector<std::vector<int>> * dist = new std::vector<std::vector<int>>(graph);
+    std::vector<std::vector<int>> * dist = new std::vector<std::vector<int>>(big_boy);
 
-    gen_adj_matrix(1000, 5);
-    FloydWarshall();
+    //PrintGraph(*dist);
+
+    auto start = std::chrono::high_resolution_clock::now();
+    FloydWarshall(dist);
+    auto stop = std::chrono::high_resolution_clock::now();
+    auto time = stop - start;
+
+    std::cout << "Time : " <<
+        (std::chrono::duration_cast<std::chrono::nanoseconds>(time).count())
+        /1000000000.0 << "s" << std::endl;
+    PrintGraph(big_boy);
 }
