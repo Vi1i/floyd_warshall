@@ -6,7 +6,6 @@
 #include <climits>
 #include <chrono>
 #include <omp.h>
-#include "bigBoy.cpp"
 
 #define INF 99999
 #define MAX_WEIGHT 20
@@ -92,7 +91,7 @@ int main(int argc, char * argv[]) {
     auto stop = std::chrono::high_resolution_clock::now();
     auto time = stop - start;
 
-    std::cout << "Time : " <<
+    std::cout << size << " : " << complexity  << " : " <<
         (std::chrono::duration_cast<std::chrono::nanoseconds>(time).count())
         /1000000000.0 << "s" << std::endl;
 
