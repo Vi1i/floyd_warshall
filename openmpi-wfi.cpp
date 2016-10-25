@@ -82,18 +82,25 @@ int main(int argc, char * argv[]) {
             complexity = std::stoi(argv[z]);
         }
     }
+    auto start = std::chrono::high_resolution_clock::now();
     GenAdjMatrix(size, complexity);
+    auto stop = std::chrono::high_resolution_clock::now();
+    auto time_gen = stop - start;
     std::vector<std::vector<int>> * dist =
         new std::vector<std::vector<int>>(graph);
 
-    auto start = std::chrono::high_resolution_clock::now();
+    start = std::chrono::high_resolution_clock::now();
     FloydWarshall(dist);
-    auto stop = std::chrono::high_resolution_clock::now();
-    auto time = stop - start;
+    stop = std::chrono::high_resolution_clock::now();
+    auto time_comp = stop - start;
 
+    // size : complexity : Serial Time(s) : Computation Time(s)
     std::cout << size << " : " << complexity  << " : " <<
-        (std::chrono::duration_cast<std::chrono::nanoseconds>(time).count())
-        /1000000000.0 << "s" << std::endl;
+        (std::chrono::duration_cast<std::chrono::nanoseconds>
+         (time_gen).count()) /1000000000.0 << "s : " <<
+        (std::chrono::duration_cast<std::chrono::nanoseconds>
+         (time_comp).count()) /1000000000.0 << "s" << std::endl;
+
 
     if(print) {
         PrintGraph(graph);
